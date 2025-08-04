@@ -37,7 +37,7 @@ onde 0 < lambda << 1
 
 Tabela com PCA sem redução de dimensionalidade 
 
-![alt text](<Imagem do WhatsApp de 2025-08-02 à(s) 23.45.18_5bb9b329.jpg>)
+![alt text](image-7.jpg)
 
 ### Questão 4
 
@@ -46,7 +46,7 @@ Tabela com PCA sem redução de dimensionalidade
 
 ### Questão 5
 
-Observando a imagem abaixo, foi escolhido o valor de q = 95
+Com base no gráfico abaixo, foi encontrado o valor de q = 69
 
 ![alt text](image-4.png)
 
@@ -54,10 +54,10 @@ Observando a imagem abaixo, foi escolhido o valor de q = 95
 
 Tabela com aplicação de PCA para redução de dimensionalidade.
 
-![alt text](image-5.png)
+![alt text](image-6.png)
 
 ### Questão 6
 
-Houve uma grande melhora no desempenho de quase todos os classificadores após a aplicação de PCA com q = 95, apenas o quadrático default ficando com desempenho ruim. Ademais, nenhuma matriz singular foi gerada e o tempo de execução diminuiu consideravalmente. Apenas o classificador 1-NN apresentou uma "piora" mínima, com seu valor médio saindo de 78.18% para 78.06%.
+Houve uma grande melhora no desempenho de quase todos os classificadores após a aplicação de PCA com q = 69, apenas o quadrático default ficando com desempenho ruim. Ademais, nenhuma matriz singular foi gerada e o tempo de execução diminuiu consideravalmente. Apenas o classificador 1-NN apresentou uma "piora" mínima, com seu valor médio saindo de 78.18% para 77.09%.
 
 ### Questão 7
