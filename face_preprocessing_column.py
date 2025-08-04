@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
+from scipy.stats import boxcox
 
 # % Routines for opening face images and convert them to column vectors
 # % by stacking the columns of the face matrix one beneath the other.
@@ -38,6 +39,13 @@ def normalize_minmax_11(X):
     X_norm_11 = 2 * X_norm_01 - 1
     return X_norm_11
 
+def box_cox(X):
+    X_pos = X + 1e-6
+    X_transformed = np.zeros_like(X_pos)
+    for i in range(X_pos.shape[0]):
+        X_transformed[i, :], _ = boxcox(X_pos[i, :])
+    print("Transformação Box-Cox concluída.")
+    return X_transformed
 
 
 #####################################################
@@ -112,6 +120,7 @@ Y = np.array(Y_list)
 print(f"\nMatriz de dados X criada com shape: {X.shape}")
 print(f"Vetor de rótulos Y criado com shape: {Y.shape}") 
 
+X = box_cox(X)
 # %%%%%%%% APLICACAO DE PCA (PCACOV) %%%%%%%%%%%
 print("\nAplicando PCA...")
 
@@ -136,11 +145,14 @@ print(f"Shape da matriz X após projeção no PCA: {X_pca.shape}")
 # % VEq=cumsum(VEi); figure; plot(VEq,'r-','linewidth',3);
 plt.figure(figsize=(8, 6))
 plt.plot(VEq, 'r-', linewidth=3)
-plt.title('Variância Explicada Acumulada pelo PCA')
+plt.title('Variância Explicada Acumulada pelo PCA com Box Cox')
+plt.axvline(x = q, color = 'blue', linestyle = ':', label = f'{q} componentes')
+plt.axhline(y = variance, color = 'green', linestyle = ':', label = f'{variance*100}% da variância')
 plt.xlabel('Número de Componentes Principais') # % xlabel('Autovalor'); (Mais preciso em Python)
 plt.ylabel('Variância Explicada Acumulada') # % ylabel('Variancia explicada acumulada');
 plt.grid(True)
-plt.savefig('veq_pca.png')
+plt.legend()
+plt.savefig('veq_pcaboxcox.png')
 plt.show()
 
 # % Z=[X;Y];  
@@ -152,7 +164,7 @@ Z = np.vstack([X_pca, Y])
 Z = Z.T
 
 # % save -ascii recfaces.dat Z
-output_filename = f'recfaces_20x20PCAq{q}.dat'
+output_filename = f'recfaces_20x20PCAq{q}BOXCOX.dat'
 np.savetxt(output_filename, Z, fmt='%.8f')
 
 """

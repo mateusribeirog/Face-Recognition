@@ -8,7 +8,7 @@ O modelo de normalização, utilizando a dimensão de [20 20] para redução das
 
 ### Questão 1
 
-Os classificadores baseados na matriz de covariância apresentaram desempenhos comprometidos, provavelmente devido ao grande número de atributos e poucos dados. Já os classificadores que não se baseiam nela, tiveram desempenhos melhores. 
+A maioria dos classificadores baseados na matriz de covariância apresentaram desempenhos comprometidos, provavelmente devido ao grande número de atributos e poucos dados. Já os classificadores que não se baseiam nela, tiveram desempenhos melhores. 
 ### Questão 2
 
 - Em relação à taxa de acerto: `Variante de Tikhonov`
@@ -46,9 +46,9 @@ Tabela com PCA sem redução de dimensionalidade
 
 ### Questão 5
 
-Com base no gráfico abaixo, foi encontrado o valor de q = 69
+Com base no gráfico abaixo, foi encontrado o valor de `q = 69`
 
-![alt text](image-4.png)
+![alt text](veq_pca.png)
 
 ## Tabela 3
 
@@ -58,6 +58,17 @@ Tabela com aplicação de PCA para redução de dimensionalidade.
 
 ### Questão 6
 
-Houve uma grande melhora no desempenho de quase todos os classificadores após a aplicação de PCA com q = 69, apenas o quadrático default ficando com desempenho ruim. Ademais, nenhuma matriz singular foi gerada e o tempo de execução diminuiu consideravalmente. Apenas o classificador 1-NN apresentou uma "piora" mínima, com seu valor médio saindo de 78.18% para 77.09%.
+Houve uma grande melhora no desempenho de quase todos os classificadores após a aplicação de PCA com `q = 69`, apenas o quadrático default ficando com desempenho ruim. Ademais, nenhuma matriz singular foi gerada e o tempo de execução diminuiu consideravalmente. Apenas o classificador 1-NN apresentou uma "piora" mínima, com seu valor médio saindo de 78.18% para 77.09%.
 
 ### Questão 7
+
+![alt text](veq_pcaboxcox.png)
+
+Podemos ver que após a aplicação da transformação box cox, o valor de `q` baixou para 63.
+
+## Tabela 4
+
+Tabela com resultados dos classificadores após a aplicação da transformação box cox.
+![alt text](image-4.png)
+
+Podemos ver que todos os classificadores, exceto o quadrático. apresentaram um desempenho melhor
