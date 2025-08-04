@@ -39,6 +39,7 @@ def normalize_minmax_11(X):
     return X_norm_11
 
 
+
 #####################################################
 # % Fase 1 -- Carrega imagens disponiveis
 #####################################################
@@ -121,9 +122,11 @@ pca.fit(X.T)
 # % [V L VEi]=pcacov(cov(X'));
 V = pca.components_.T             # Autovetores (componentes principais)
 VEi = pca.explained_variance_ratio_ # Variância explicada por cada componente
-
+VEq = np.cumsum(VEi)
+variance = 0.98
+q = np.searchsorted(VEq, variance) + 1
 # % q=25; Vq=V(:,1:q); Qq=Vq'; X=Qq*X;
-q = 95
+print(f"O valor de q encontrado foi: {q}")
 Vq = V[:, :q]
 Qq = Vq.T
 X_pca = Qq @ X # Projeta os dados originais nos novos componentes
@@ -131,7 +134,6 @@ X_pca = Qq @ X # Projeta os dados originais nos novos componentes
 print(f"Shape da matriz X após projeção no PCA: {X_pca.shape}")
 
 # % VEq=cumsum(VEi); figure; plot(VEq,'r-','linewidth',3);
-VEq = np.cumsum(VEi)
 plt.figure(figsize=(8, 6))
 plt.plot(VEq, 'r-', linewidth=3)
 plt.title('Variância Explicada Acumulada pelo PCA')
@@ -150,7 +152,7 @@ Z = np.vstack([X_pca, Y])
 Z = Z.T
 
 # % save -ascii recfaces.dat Z
-output_filename = 'recfaces_20x20PCAq95.dat'
+output_filename = f'recfaces_20x20PCAq{q}.dat'
 np.savetxt(output_filename, Z, fmt='%.8f')
 
 """
