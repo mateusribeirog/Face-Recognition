@@ -47,147 +47,175 @@ def box_cox(X):
     print("Transformação Box-Cox concluída.")
     return X_transformed
 
+def pre_process(norm, pca, Q, output_filename):
 
-#####################################################
-# % Fase 1 -- Carrega imagens disponiveis
-#####################################################
-part1 = 'subject0'
-part2 = 'subject'
-part3 = ['.centerlight', '.glasses', '.happy', '.leftlight', '.noglasses', '.normal', '.rightlight', '.sad', '.sleepy', '.surprised', '.wink']
+    #####################################################
+    # % Fase 1 -- Carrega imagens disponiveis
+    #####################################################
+    part1 = 'subject0'
+    part2 = 'subject'
+    part3 = ['.centerlight', '.glasses', '.happy', '.leftlight', '.noglasses', '.normal', '.rightlight', '.sad', '.sleepy', '.surprised', '.wink']
 
-Nind = 15          # % Quantidade de individuos (classes)
-Nexp = len(part3)  # % Quantidade de expressoes
+    Nind = 15          # % Quantidade de individuos (classes)
+    Nexp = len(part3)  # % Quantidade de expressoes
 
-X_list = []  # % Lista para acumular imagens vetorizadas
-Y_list = []  # % Lista para acumular o rotulo (identificador) do individuo
+    X_list = []  # % Lista para acumular imagens vetorizadas
+    Y_list = []  # % Lista para acumular o rotulo (identificador) do individuo
 
-# --- Loop principal para carregar e processar as imagens ---
-for i in range(1, Nind + 1):  # % Indice para os individuos
-    print(f"Processando indivíduo: {i}")  # % individuo=i,
-    for j in range(Nexp):  # % Indice para expressoes
-        
-        # % Monta o nome do arquivo de imagem
-        if i < 10:
-            nome_base = f"{part1}{i}{part3[j]}"
+    # --- Loop principal para carregar e processar as imagens ---
+    for i in range(1, Nind + 1):  # % Indice para os individuos
+        print(f"Processando indivíduo: {i}")  # % individuo=i,
+        for j in range(Nexp):  # % Indice para expressoes
+            
+            # % Monta o nome do arquivo de imagem
+            if i < 10:
+                nome_base = f"{part1}{i}{part3[j]}"
+            else:
+                nome_base = f"{part2}{i}{part3[j]}"
+
+            # Lógica para encontrar o arquivo de imagem na pasta 'data'
+            file_path = None
+            # Procura por arquivos com várias extensões (incluindo sem extensão)
+            for ext in ['', '.gif', '.pgm', '.jpg', '.png', '.jpeg']:
+                potential_path = os.path.join('data', nome_base + ext)
+                if os.path.exists(potential_path):
+                    file_path = potential_path
+                    break
+            
+            if not file_path:
+                print(f"  Aviso: Imagem para '{nome_base}' não encontrada. Pulando.")
+                continue
+
+            # % le imagem (em escala de cinza)
+            Img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
+            
+            if Img is None:
+                print(f"  Aviso: Falha ao ler o arquivo de imagem '{file_path}'. Pulando.")
+                continue
+
+            # % (Opcional) Redimensiona imagem
+            Ar = cv2.resize(Img, (20, 20))
+
+            # % (Opcional) adiciona ruido (mantido como no original, sem ruído)
+            An = Ar
+            
+            # % converte (im2double) para double precision no intervalo [0, 1]
+            A = An.astype(np.float64) / 255.0
+            
+            # % Etapa de vetorizacao: Empilhamento das colunas
+            a = A.flatten('F')
+            
+            # % Rotulo = indice do individuo
+            ROT = i
+            
+            # Adiciona os vetores às listas
+            X_list.append(a)
+            Y_list.append(ROT)
+
+    # Converte as listas para matrizes NumPy
+    # % Coloca cada imagem vetorizada como coluna da matriz X
+    X = np.column_stack(X_list) 
+    # % Coloca o rotulo de cada vetor como coluna da matriz Y
+    Y = np.array(Y_list)
+
+    print(f"\nMatriz de dados X criada com shape: {X.shape}")
+    print(f"Vetor de rótulos Y criado com shape: {Y.shape}")
+
+    if norm == 'z-score': X = normalize_zscore(X)
+    elif norm == 'minmax01': X = normalize_minmax_01(X)
+    elif norm == 'minmax11': X = normalize_minmax_11(X)
+    elif norm == 'boxcox': X = box_cox(X)
+
+    if pca:
+        print("\nAplicando PCA...")
+
+        # Scikit-learn espera dados com amostras por linha, então transpomos X
+        pca = PCA(n_components=None) # Pega todos os componentes primeiro
+        pca.fit(X.T)
+
+        # % [V L VEi]=pcacov(cov(X'));
+        V = pca.components_.T             # Autovetores (componentes principais)
+        VEi = pca.explained_variance_ratio_ # Variância explicada por cada componente
+        VEq = np.cumsum(VEi)
+        variance = 0.98
+        if Q == 400:
+            q = 400
+            print(f"\nAplicado pca com q = 400")
+
         else:
-            nome_base = f"{part2}{i}{part3[j]}"
+            q = np.searchsorted(VEq, variance) + 1
+            # % q=25; Vq=V(:,1:q); Qq=Vq'; X=Qq*X;
+            print(f"\nO valor de q encontrado foi: {q}")
 
-        # Lógica para encontrar o arquivo de imagem na pasta 'data'
-        file_path = None
-        # Procura por arquivos com várias extensões (incluindo sem extensão)
-        for ext in ['', '.gif', '.pgm', '.jpg', '.png', '.jpeg']:
-            potential_path = os.path.join('data', nome_base + ext)
-            if os.path.exists(potential_path):
-                file_path = potential_path
-                break
+        Vq = V[:, :q]
+        Qq = Vq.T
+        X = Qq @ X # Projeta os dados originais nos novos componentes
         
-        if not file_path:
-            print(f"  Aviso: Imagem para '{nome_base}' não encontrada. Pulando.")
-            continue
+        print(f"Shape da matriz X após projeção no PCA: {X.shape}")
 
-        # % le imagem (em escala de cinza)
-        Img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
-        
-        if Img is None:
-            print(f"  Aviso: Falha ao ler o arquivo de imagem '{file_path}'. Pulando.")
-            continue
+        if norm == 'boxcox':
+            plt.figure(figsize=(8, 6))
+            plt.plot(VEq, 'r-', linewidth=3)
+            plt.title('Variância Explicada Acumulada pelo PCA com Box Cox')
+            plt.axvline(x = q, color = 'blue', linestyle = ':', label = f'{q} componentes')
+            plt.axhline(y = variance, color = 'green', linestyle = ':', label = f'{variance*100}% da variância')
+            plt.xlabel('Número de Componentes Principais') # % xlabel('Autovalor'); (Mais preciso em Python)
+            plt.ylabel('Variância Explicada Acumulada') # % ylabel('Variancia explicada acumulada');
+            plt.grid(True)
+            plt.legend()
+            plt.savefig('veq_pcaboxcox.png')
+            plt.show()
+        else:
+            plt.figure(figsize=(8, 6))
+            plt.plot(VEq, 'r-', linewidth=3)
+            plt.title('Variância Explicada Acumulada pelo PCA')
+            plt.axvline(x = q, color = 'blue', linestyle = ':', label = f'{q} componentes')
+            plt.axhline(y = variance, color = 'green', linestyle = ':', label = f'{variance*100}% da variância')
+            plt.xlabel('Número de Componentes Principais') # % xlabel('Autovalor'); (Mais preciso em Python)
+            plt.ylabel('Variância Explicada Acumulada') # % ylabel('Variancia explicada acumulada');
+            plt.grid(True)
+            plt.legend()
+            plt.savefig('veq_pca.png')
+            plt.show()
 
-        # % (Opcional) Redimensiona imagem
-        Ar = cv2.resize(Img, (20, 20))
+    Z = np.vstack([X, Y])
 
-        # % (Opcional) adiciona ruido (mantido como no original, sem ruído)
-        An = Ar
-        
-        # % converte (im2double) para double precision no intervalo [0, 1]
-        A = An.astype(np.float64) / 255.0
-        
-        # % Etapa de vetorizacao: Empilhamento das colunas
-        a = A.flatten('F')
-        
-        # % Rotulo = indice do individuo
-        ROT = i
-        
-        # Adiciona os vetores às listas
-        X_list.append(a)
-        Y_list.append(ROT)
+    # % Z=Z'; 
+    # Transpõe para que cada linha seja uma amostra
+    Z = Z.T
 
-# Converte as listas para matrizes NumPy
-# % Coloca cada imagem vetorizada como coluna da matriz X
-X = np.column_stack(X_list) 
-# % Coloca o rotulo de cada vetor como coluna da matriz Y
-Y = np.array(Y_list)
+    np.savetxt(output_filename, Z, fmt='%.8f')
 
-print(f"\nMatriz de dados X criada com shape: {X.shape}")
-print(f"Vetor de rótulos Y criado com shape: {Y.shape}") 
 
-X = box_cox(X)
-# %%%%%%%% APLICACAO DE PCA (PCACOV) %%%%%%%%%%%
-print("\nAplicando PCA...")
 
-# Scikit-learn espera dados com amostras por linha, então transpomos X
-pca = PCA(n_components=None) # Pega todos os componentes primeiro
-pca.fit(X.T)
 
-# % [V L VEi]=pcacov(cov(X'));
-V = pca.components_.T             # Autovetores (componentes principais)
-VEi = pca.explained_variance_ratio_ # Variância explicada por cada componente
-VEq = np.cumsum(VEi)
-variance = 0.98
-q = np.searchsorted(VEq, variance) + 1
-# % q=25; Vq=V(:,1:q); Qq=Vq'; X=Qq*X;
-print(f"O valor de q encontrado foi: {q}")
-Vq = V[:, :q]
-Qq = Vq.T
-X_pca = Qq @ X # Projeta os dados originais nos novos componentes
+if __name__ == '__main__':
+    print("\n>>> Gerando: Dados para Atividade 1 (Sem PCA, Sem Normalização)")
+    pre_process(norm='nenhuma', pca=False, Q=None, 
+                output_filename=f'recfaces_20x20_sem_pca_sem_norm.dat')
 
-print(f"Shape da matriz X após projeção no PCA: {X_pca.shape}")
+    print("\n>>> Gerando: Dados para OBS-2 (Sem PCA, Z-Score)")
+    pre_process(norm='z-score', pca=False, Q=None, 
+                output_filename=f'recfaces_20x20_sem_pca_zscore.dat')
 
-# % VEq=cumsum(VEi); figure; plot(VEq,'r-','linewidth',3);
-plt.figure(figsize=(8, 6))
-plt.plot(VEq, 'r-', linewidth=3)
-plt.title('Variância Explicada Acumulada pelo PCA com Box Cox')
-plt.axvline(x = q, color = 'blue', linestyle = ':', label = f'{q} componentes')
-plt.axhline(y = variance, color = 'green', linestyle = ':', label = f'{variance*100}% da variância')
-plt.xlabel('Número de Componentes Principais') # % xlabel('Autovalor'); (Mais preciso em Python)
-plt.ylabel('Variância Explicada Acumulada') # % ylabel('Variancia explicada acumulada');
-plt.grid(True)
-plt.legend()
-plt.savefig('veq_pcaboxcox.png')
-plt.show()
+    print("\n>>> Gerando: Dados para OBS-2 (Sem PCA, Min-Max [0, 1])")
+    pre_process(norm='minmax01', pca=False, Q=None, 
+                output_filename=f'recfaces_20x20_sem_pca_minmax01.dat')
 
-# % Z=[X;Y];  
-# Empilha os dados projetados pelo PCA e os rótulos
-Z = np.vstack([X_pca, Y])
+    print("\n>>> Gerando: Dados para OBS-2 (Sem PCA, Min-Max [-1, 1])")
+    pre_process(norm='minmax11', pca=False, Q=None, 
+                output_filename=f'recfaces_20x20_sem_pca_minmax11.dat')
 
-# % Z=Z'; 
-# Transpõe para que cada linha seja uma amostra
-Z = Z.T
+    print("\n>>> Gerando: Dados para Atividade 3 (PCA sem redução)")
+    pre_process(norm='nenhuma', pca=True, Q=400, 
+                output_filename=f'recfaces_20x20_pca_sem_reducao.dat')
 
-# % save -ascii recfaces.dat Z
-output_filename = f'recfaces_20x20PCAq{q}BOXCOX.dat'
-np.savetxt(output_filename, Z, fmt='%.8f')
+    print("\n>>> Gerando: Dados para Atividade 5 (PCA com redução)")
+    pre_process(norm='nenhuma', pca=True, Q=None, 
+                output_filename=f'recfaces_20x20_pca_com_reducao.dat')
 
-"""
-# 2. Dados com normalização Z-Score
-print("\nAplicando Z-Score e salvando...")
-X_norm_zscore = normalize_zscore(X)
-Z = np.vstack([X_norm_zscore, Y]).T
-np.savetxt('recfaces_20x20_zscore.dat', Z, fmt='%.8f')
-print("Arquivo 'recfaces_20x20_zscore.dat' salvo.")
+    print("\n>>> Gerando: Dados para Atividade 7 (Box-Cox + PCA com redução)")
+    pre_process(norm='boxcox', pca=True, Q=None, 
+                output_filename=f'recfaces_20x20_boxcox_pca.dat')
 
-# 3. Dados com normalização Min-Max [0, 1]
-print("\nAplicando Min-Max [0, 1] e salvando...")
-X_norm_minmax01 = normalize_minmax_01(X)
-Z = np.vstack([X_norm_minmax01, Y]).T
-np.savetxt('recfaces_20x20_minmax01.dat', Z, fmt='%.8f')
-print("Arquivo 'recfaces_20x20_minmax01.dat' salvo.")
-
-# 4. Dados com normalização Min-Max [-1, 1]
-print("\nAplicando Min-Max [-1, 1] e salvando...")
-X_norm_minmax11 = normalize_minmax_11(X)
-Z = np.vstack([X_norm_minmax11, Y]).T
-np.savetxt('recfaces_20x20_minmax11.dat', Z, fmt='%.8f')
-print("Arquivo 'recfaces_20x20_minmax11.dat' salvo.")
-
-print(f"\nProcesso concluído")
-"""
+    print("\n--- Processo finalizado! Todos os 7 arquivos .dat foram gerados. ---")
