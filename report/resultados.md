@@ -1,3 +1,8 @@
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]}, messageStyle: "none" });
+</script>
+
 # Resultados observados
 
 ## Tabela 1: Desempenho sem PCA
@@ -9,7 +14,7 @@ Resultados da Atividade 2, utilizando os dados sem aplicação de PCA. Para os c
 ### Questão 1
 **O que se pode concluir sobre os desempenhos dos classificadores avaliados?**
 
-Os classificadores quadráticos (`Quadrático`, `Variante 2`, `Variante 3`, `Variante 4`) apresentaram, em sua maioria, um desempenho severamente comprometido, com acurácias próximas a um chute aleatório (≈6.67%). Isso ocorre devido ao número de atributos ser muito superior ao número de amostras por classe, tornando a estimativa da matriz de covariância instável.
+Os classificadores quadráticos (`Quadrático`, `Variante 2`, `Variante 3`, `Variante 4`) apresentaram, em sua maioria, um desempenho severamente comprometido. Isso ocorre devido ao número de atributos ser muito superior ao número de amostras por classe, tornando a estimativa da matriz de covariância instável.
 
 Notavelmente, a **Variante 1 (Tikhonov)** foi a única exceção entre os modelos quadráticos, demonstrando que sua forma de regularização foi eficaz.
 
@@ -27,12 +32,12 @@ Com base nos resultados da Tabela 1:
 
 **Sim**, houve problemas de inversão de matriz. Conforme a coluna "Matrizes Singulares", o problema ocorreu  para o **Classificador Quadrático** e para a **Variante 4 (Naive Bayes)**.
 
-Isso ocorre porque, sem regularização adequada, a estimativa da matriz de covariância ($C_i$) torna-se singular quando o número de atributos (p) é maior que o número de amostras por classe (n_c). Na implementação, a tentativa de inversão direta (`np.linalg.inv`) falha. Para que o algoritmo pudesse prosseguir e gerar um resultado, foi utilizado um fallback para a **pseudo-inversa (`np.linalg.pinv`)**, o que permitiu a conclusão do teste, ainda que com baixa acurácia.
+Isso ocorreu porque, sem regularização adequada, a matriz de covariância ($C_i$) demonstrou-se singular. Na implementação, caso a tentativa de inversão direta (`np.linalg.inv`) falhe, para que o algoritmo pudesse prosseguir e gerar um resultado, foi utilizado um fallback para a **pseudo-inversa (`np.linalg.pinv`)**, o que permitiu a conclusão do teste, ainda que com baixa acurácia.
 
 As demais variantes contornaram o problema com sucesso através dos seguintes mecanismos de regularização:
 
 - **Variante 1 (Tikhonov):** Adiciona um múltiplo da matriz identidade ($\lambda I_p$) à matriz de covariância ($C_i + \lambda I_p$), onde $0 \leq \lambda << 1$. Isso aumenta os valores da diagonal principal, tornando a matriz mais estável e garantindo sua invertibilidade.
-- **Variante 2 (Pooled):** Utiliza uma única matriz de covariância agregada ($C_{pool}$), calculada como a média ponderada das covariâncias de todas as classes. Essa matriz é estimada com um número muito maior de amostras, tornando-a mais robusta e menos propensa à singularidade.
+- **Variante 2 (Pooled):** Utiliza uma única matriz de covariância agregada ($C_{pool}$), calculada como uma soma ponderada das covariâncias de todas as classes. Essa matriz é estimada com um número muito maior de amostras, tornando-a mais robusta e menos propensa à singularidade.
 - **Variante 3 (Friedman):** Realiza uma combinação entre a matriz de covariância individual de cada classe ($C_i$) e a matriz agregada ($C_{pool}$).
 
 ## Tabela 2: Desempenho com PCA (Sem Redução)
