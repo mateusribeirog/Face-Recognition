@@ -70,7 +70,7 @@ Resultados da Atividade 6, com aplicação de PCA com redução de dimensionalid
 **O que se pode concluir sobre os desempenhos com a realização da redução de dimensionalidade via PCA?**
 
 A redução de dimensionalidade via PCA para `q=69` resultou em uma **melhora de desempenho substancial e generalizada**.
-- **Melhora e Estabilidade:** Todass as variantes quadráticas tiveram um ganho de performance, com acurácias médias relativamente altas e a eliminação de matrizes singulares.
+- **Melhora e Estabilidade:** Todas as variantes quadráticas tiveram um ganho de performance, com acurácias médias relativamente altas e a eliminação de matrizes singulares.
 - **Eficiência:** Houve também uma redução significativa no tempo de execução dos modelos mais complexos, pois os cálculos matriciais foram realizados em um espaço de dimensão muito menor.
 - **Piora Mínima:** Apenas o classificador **1-NN** apresentou uma leve queda no desempenho (de 78.18% para 77.09%). Isso pode ocorrer pois a redução, embora preserve a maior parte da variância, pode descartar informações sutis que eram úteis para a sua fronteira de decisão.
 
