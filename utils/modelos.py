@@ -1,10 +1,6 @@
 import numpy as np
 
 
-# ==============================================================================
-#  FUNÇÕES DE CLASSIFICAÇÃO
-# ==============================================================================
-
 def dmc_classifier(X_treino, y_treino, X_teste):
     classes = np.unique(y_treino)
     centroides = {c: np.mean(X_treino[y_treino == c], axis=0) for c in classes}

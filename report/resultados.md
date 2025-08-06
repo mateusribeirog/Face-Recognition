@@ -99,19 +99,5 @@ Observando a Tabela 4, a transformação Box-Cox trouxe um ganho adicional de ac
 
 ![alt text](image-8.png)
   
-Podemos concluir que, após a aplicação de PCA para redução de dimensionalidade e normalização z-score, a classificação binária se demonstrou mais eficiente.
+Podemos concluir que, o primeiro modelo demonstrou uma alta capacidade de detecção da classe intrusa, alcançando uma sensibilidade de 98% e uma taxa de falsos negativos de 0%, cumprindo com eficácia sua principal função de segurança. Contudo, essa segurança foi obtida através de uma estratégia restritiva, que resultou em uma taxa de falsos positivos de 100%, rejeitando todos os usuários autorizados e comprometendo a aplicação prática do sistema. Por outro lado, o segundo modelo apresentou uma acurácia geral superior e uma taxa de falsos positivos mais baixa, mostrando maior flexibilidade ao conceder acesso à maioria dos usuários autorizados. Entretanto, essa usabilidade veio com um custo de segurança, evidenciado pela alta taxa de falsos negativos, indicando que o modelo falhou em detectar o intruso na maioria das ocasiões.
 
-Ademais, é válido ressaltar que com outros indíviduos que não fossem o `16` (minhas fotos), o classificador apresentou um desempenho significativamente pior, provavelmente pelo fato de as images do dataset original terem um padrão de angulação, câmera e iluminação.
-
-
-#### Comparando com outros indivíduos
-
-A fim de exemplificar, abaixo está um exemplo aplicado a indentificar o indivíduo 12 como intruso:
-
-- Índices de desempenho para o primeiro modelo (intruso = 12):
-
-![alt text](image-9.png)
-
-- Índices de desempenho para o segundo modelo (intruso = 12):
-
-![alt text](image-10.png)
